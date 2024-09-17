@@ -4,25 +4,24 @@ const fs = require("fs").promises;
   let comments = await fetchComments();
 
   comments = sortCommentsByCreatedAt(comments);
-  // Построить дерево комментариев
+
   let commentTree = buildCommentTree(comments);
 
   console.log(commentTree);
 })();
 
+// fetch comments from local json file
 async function fetchComments() {
   const data = await fs.readFile("comments.json", "utf-8");
   return JSON.parse(data);
 }
 
+// build comment tree from flat comments array
 function buildCommentTree(comments) {
-  const commentMap = new Map();
+  const commentMap = new Map(comments.map((comment) => [comment.id, comment]));
+
   const rootComments = [];
 
-  // Создаем карту для быстрого доступа к комментариям по ID
-  comments.forEach((comment) => commentMap.set(comment.id, comment));
-
-  // Проходим по всем комментариям и добавляем их в дерево
   comments.forEach((comment) => {
     if (!comment.parentId) {
       rootComments.push(comment);
@@ -38,8 +37,9 @@ function buildCommentTree(comments) {
   return rootComments;
 }
 
+// sort comments by createdAt
 function sortCommentsByCreatedAt(comments) {
-  comments.sort((a, b) => a.created_at - b.created_at);
+  comments.sort((a, b) => a.createdAt - b.createdAt);
   if (comments.children) {
     comments.children.forEach((child) => sortCommentsByCreatedAt(child));
   }
